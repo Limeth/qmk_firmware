@@ -14,6 +14,38 @@ enum preonic_layers {
 // TODO: Greek: https://unicode-table.com/en/0370/
 #define UC_GK_A 0x391
 
+enum unicode_greek {
+    UC_GK_ALPHA = 0x391,
+    UC_GK_BETA,
+    UC_GK_GAMMA,
+    UC_GK_DELTA,
+    UC_GK_EPSILON,
+    UC_GK_ZETA,
+    UC_GK_ETA,
+    UC_GK_THETA,
+    UC_GK_IOTA,
+    UC_GK_KAPPA,
+    UC_GK_LAMBDA,
+    UC_GK_MU,
+    UC_GK_NU,
+    UC_GK_XI,
+    UC_GK_OMICRON,
+    UC_GK_PI,
+    UC_GK_RHO,
+    // Skip one
+    UC_GK_SIGMA = 0x3a3,
+    UC_GK_TAU,
+    UC_GK_UPSILON,
+    UC_GK_PHI,
+    UC_GK_CHI,
+    UC_GK_PSI,
+    UC_GK_OMEGA,
+
+    // Lower-case alternatives
+    UC_GK_ALT_THETA = 0x3d1,
+    UC_GK_ALT_SIGMA = 0x3c2,
+};
+
 // TODO: Add math ops: https://unicode-table.com/en/#mathematical-operators
 
 // Custom keycodes with custom behaviour, starting at SAFE_RANGE
@@ -47,7 +79,34 @@ enum preonic_keycodes {
     DO_SYMB,
 
     // Greek
-    GK_A,
+    GK_ALPHA,
+    GK_BETA,
+    GK_GAMMA,
+    GK_DELTA,
+    GK_EPSILON,
+    GK_ZETA,
+    GK_ETA,
+    // lowercase variants
+    GK_THETA1,
+    GK_THETA2,
+    GK_IOTA,
+    GK_KAPPA,
+    GK_LAMBDA,
+    GK_MU,
+    GK_NU,
+    GK_XI,
+    GK_OMICRON,
+    GK_PI,
+    GK_RHO,
+    // lowercase variants
+    GK_SIGMA1,
+    GK_SIGMA2,
+    GK_TAU,
+    GK_UPSILON,
+    GK_PHI,
+    GK_CHI,
+    GK_PSI,
+    GK_OMEGA,
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -98,21 +157,21 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * ,-----------------------------------------------------------------------------------.
  * |      |      |      |      |      |      |      |      |      |      |      |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      |      |      |      |      |      |      |      |
+ * |      |Theta1|Omega |Epsiln| Rho  | Tau  | Psi  |Upsiln| Iota |Omicrn|  Pi  |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |    Α |      |      |      |      |      |      |      |      |      |      |
+ * |      |Alpha |Sigma1|Delta | Phi  |Gamma | Eta  |Theta2|Kappa |Lambda|      |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      |      |      |      | ,    |      | ↑    |      |
+ * |      | Zeta |  Xi  | Chi  |Sigma2| Beta |  Nu  |  Mu  |      |      | ↑    |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      |             |      |Enter | ←    | ↓    | →    |
+ * |      |      |      |      |      |             |      |      | ←    | ↓    | →    |
  * `-----------------------------------------------------------------------------------'
  */
 [_GREEK] = {
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
-  {_______, GK_A,    XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, UP_SYMB, _______},
-  {_______, _______, _______, _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______, LE_SYMB, DO_SYMB, RI_SYMB}
+  {_______, XXXXXXX,   XXXXXXX,   XXXXXXX,    XXXXXXX,   XXXXXXX,  XXXXXXX, XXXXXXX,    XXXXXXX,  XXXXXXX,    XXXXXXX, _______},
+  {_______, GK_THETA1, GK_OMEGA,  GK_EPSILON, GK_RHO,    GK_TAU,   GK_PSI,  GK_UPSILON, GK_IOTA,  GK_OMICRON, XXXXXXX, _______},
+  {_______, GK_ALPHA,  GK_SIGMA1, GK_DELTA,   GK_PHI,    GK_GAMMA, GK_ETA,  GK_THETA2,  GK_KAPPA, GK_LAMBDA,  XXXXXXX, _______},
+  {_______, GK_ZETA,   GK_XI,     GK_CHI,     GK_SIGMA2, GK_BETA,  GK_NU,   GK_MU,      XXXXXXX,  XXXXXXX,    UP_SYMB, _______},
+  {_______, _______,   _______,   _______,    XXXXXXX,   XXXXXXX,  XXXXXXX, XXXXXXX,    _______,  LE_SYMB,    DO_SYMB, RI_SYMB}
 },
 
 /* Lower
@@ -314,7 +373,32 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case LE_SYMB: return override_key(record, RALT(KC_Y), KC_NO);
         case DO_SYMB: return override_key(record, RALT(KC_U), KC_NO);
 
-        case GK_A: return greek(record, UC_GK_A);
+        case GK_ALPHA: return greek(record, UC_GK_ALPHA);
+        case GK_BETA: return greek(record, UC_GK_BETA);
+        case GK_GAMMA: return greek(record, UC_GK_GAMMA);
+        case GK_DELTA: return greek(record, UC_GK_DELTA);
+        case GK_EPSILON: return greek(record, UC_GK_EPSILON);
+        case GK_ZETA: return greek(record, UC_GK_ZETA);
+        case GK_ETA: return greek(record, UC_GK_ETA);
+        case GK_THETA1: return greek(record, UC_GK_THETA);
+        case GK_THETA2: return override_key(record, UC(UC_GK_ALT_THETA), UC(UC_GK_THETA));
+        case GK_IOTA: return greek(record, UC_GK_IOTA);
+        case GK_KAPPA: return greek(record, UC_GK_KAPPA);
+        case GK_LAMBDA: return greek(record, UC_GK_LAMBDA);
+        case GK_MU: return greek(record, UC_GK_MU);
+        case GK_NU: return greek(record, UC_GK_NU);
+        case GK_XI: return greek(record, UC_GK_XI);
+        case GK_OMICRON: return greek(record, UC_GK_OMICRON);
+        case GK_PI: return greek(record, UC_GK_PI);
+        case GK_RHO: return greek(record, UC_GK_RHO);
+        case GK_SIGMA1: return greek(record, UC_GK_SIGMA);
+        case GK_SIGMA2: return override_key(record, UC(UC_GK_ALT_SIGMA), UC(UC_GK_SIGMA));
+        case GK_TAU: return greek(record, UC_GK_TAU);
+        case GK_UPSILON: return greek(record, UC_GK_UPSILON);
+        case GK_PHI: return greek(record, UC_GK_PHI);
+        case GK_CHI: return greek(record, UC_GK_CHI);
+        case GK_PSI: return greek(record, UC_GK_PSI);
+        case GK_OMEGA: return greek(record, UC_GK_OMEGA);
     }
     return true;
 };
