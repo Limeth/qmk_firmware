@@ -1,1 +1,3 @@
-# The default Preonic layout - largely based on the Planck's
+# Limeth's Preonic layout
+
+This keymap assumes the czech qwertz system layout.
