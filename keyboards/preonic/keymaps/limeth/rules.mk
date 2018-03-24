@@ -1,2 +1,3 @@
 UNICODE_ENABLE = yes
 EXTRAFLAGS += -flto
+AUDIO_ENABLE = yes

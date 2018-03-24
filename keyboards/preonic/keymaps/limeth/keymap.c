@@ -495,28 +495,54 @@ bool toggle_layer(keyrecord_t *record, uint8_t layer) {
     return false;
 }
 
+#ifdef AUDIO_ENABLE
+float default_layer_songs_local[][16][2] = DEFAULT_LAYER_SONGS;
+#endif
+
+bool set_default_layer_sound(keyrecord_t *record, uint8_t default_layer) {
+    if (record->event.pressed) {
+#ifdef AUDIO_ENABLE
+        PLAY_SONG(default_layer_songs_local[default_layer]);
+#endif
+        default_layer_set(1U<<default_layer);
+    }
+
+    return false;
+}
+
 #define REP0(...)
 #define REP1(...) __VA_ARGS__
 #define REP2(...) REP1(__VA_ARGS__) __VA_ARGS__
 #define REP3(...) REP2(__VA_ARGS__) __VA_ARGS__
 #define REP4(...) REP3(__VA_ARGS__) __VA_ARGS__
 
+#define REISUB_ARMING_MILLIS 3000
+#define REISUB_ARMING_SOUND_PERIOD 250
+#define REISUB_INITIATION_COMMAND_PERIOD 2000
+
+#ifdef AUDIO_ENABLE
 #define REISUB_TAP(k) \
     SEND_STRING(SS_TAP(k)); \
     PLAY_SONG(initiation_beep); \
-    wait_ms(3000);
+    wait_ms(REISUB_INITIATION_COMMAND_PERIOD);
 #define REISUB_TAP_FINAL(k) \
     SEND_STRING(SS_TAP(k)); \
     PLAY_SONG(initiation_beep_final);
+#else
+#define REISUB_TAP(k) \
+    SEND_STRING(SS_TAP(k)); \
+    wait_ms(REISUB_INITIATION_COMMAND_PERIOD);
+#define REISUB_TAP_FINAL(k) \
+    SEND_STRING(SS_TAP(k));
+#endif
 
-#define REISUB_ARMING_MILLIS 3000
-#define REISUB_ARMING_SOUND_PERIOD 250
-
+#ifdef AUDIO_ENABLE
 static float arming_start[][2] = SONG(M__NOTE(_A3, 2), M__NOTE(_A4, 2), M__NOTE(_A5, 2), M__NOTE(_A6, 2));
 static float arming_beep[][2] = SONG(M__NOTE(_A6, 4));
-static float arming_cancel[][2] = SONG(M__NOTE(_A8, 8));
+static float arming_cancel[][2] = SONG(M__NOTE(_A7, 8));
 static float initiation_beep[][2] = SONG(REP4(M__NOTE(_A6, 2), M__NOTE(_A5, 2), M__NOTE(_A4, 2), M__NOTE(_A3, 2), ));
 static float initiation_beep_final[][2] = SONG(REP4(M__NOTE(_A6, 2), M__NOTE(_A5, 2), M__NOTE(_A4, 2), M__NOTE(_A3, 2), )M__NOTE(_A3, 30));
+#endif
 static bool reisub_arming = false;
 static uint16_t reisub_press_timer = 0;
 static uint16_t reisub_arming_sounds_played;
@@ -525,11 +551,15 @@ static bool reisub_initiated = false;
 void reisub_arming_act_upon(bool arming) {
     if (reisub_arming != arming) {
         if (arming) {
+#ifdef AUDIO_ENABLE
             PLAY_SONG(arming_start);
+#endif
             reisub_press_timer = timer_read();
             reisub_arming_sounds_played = 0;
         } else {
+#ifdef AUDIO_ENABLE
             PLAY_SONG(arming_cancel);
+#endif
         }
 
         reisub_arming = arming;
@@ -573,7 +603,9 @@ void matrix_scan_user() {
         uint16_t arming_sound_index = arming_duration / REISUB_ARMING_SOUND_PERIOD;
 
         if (arming_sound_index > reisub_arming_sounds_played) {
+#ifdef AUDIO_ENABLE
             PLAY_SONG(arming_beep);
+#endif
             reisub_arming_sounds_played = arming_sound_index;
         }
     }
@@ -591,11 +623,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
 
-        case GAME: return toggle_layer(record, _GAME);
+        case GAME: return set_default_layer_sound(record, _GAME);
         case NUMPAD: return toggle_layer(record, _NUMPAD);
         case GREEK: return toggle_layer(record, _GREEK);
         case LOWER: return toggle_layer(record, _LOWER);
         case RAISE: return toggle_layer(record, _RAISE);
+
         case SYSTEM:
             system_layer_change_state(record->event.pressed);
             return false;
