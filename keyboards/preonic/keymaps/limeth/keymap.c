@@ -575,14 +575,16 @@ void reisub_initiate(void) {
     reisub_initiated = true;
     reisub_arming = false;
 
-    SEND_STRING(SS_DOWN(X_LSHIFT));
+    SEND_STRING(SS_DOWN(X_LALT));
+    SEND_STRING(SS_DOWN(X_PSCREEN));
     REISUB_TAP(X_R);
     REISUB_TAP(X_E);
     REISUB_TAP(X_I);
     REISUB_TAP(X_S);
     REISUB_TAP(X_U);
     REISUB_TAP_FINAL(X_B);
-    SEND_STRING(SS_UP(X_LSHIFT));
+    SEND_STRING(SS_UP(X_PSCREEN));
+    SEND_STRING(SS_UP(X_LALT));
 
     reisub_initiated = false;
 }
