@@ -1,6 +1,7 @@
 #include "preonic.h"
 #include "action_layer.h"
 #include "wait.h"
+
 #define XXXXXXX KC_NO
 
 enum preonic_layers {
@@ -16,59 +17,14 @@ enum preonic_layers {
   _SYSTEM,
 };
 
-// TODO: Greek: https://unicode-table.com/en/0370/
-enum unicode_greek {
-    UC_GK_ALPHA = 0x391,
-    UC_GK_BETA,
-    UC_GK_GAMMA,
-    UC_GK_DELTA,
-    UC_GK_EPSILON,
-    UC_GK_ZETA,
-    UC_GK_ETA,
-    UC_GK_THETA,
-    UC_GK_IOTA,
-    UC_GK_KAPPA,
-    UC_GK_LAMBDA,
-    UC_GK_MU,
-    UC_GK_NU,
-    UC_GK_XI,
-    UC_GK_OMICRON,
-    UC_GK_PI,
-    UC_GK_RHO,
-    // Skip one
-    UC_GK_SIGMA = 0x3a3,
-    UC_GK_TAU,
-    UC_GK_UPSILON,
-    UC_GK_PHI,
-    UC_GK_CHI,
-    UC_GK_PSI,
-    UC_GK_OMEGA,
-
-    // Lower-case alternatives
-    UC_GK_ALT_THETA = 0x3d1,
-    UC_GK_ALT_SIGMA = 0x3c2,
-};
-
-enum unicode_letterlike {
-    UC_LL_COMPLEX = 0x2102,
-    UC_LL_QUATERNION = 0x210d,
-    LC_LL_NATURAL = 0x2115,
-    LC_LL_RATIONAL = 0x211a,
-    LC_LL_REAL = 0x211d,
-    LC_LL_TM = 0x2122,
-    LC_LL_INTEGER = 0x2124,
-};
-
-// TODO: Add math ops: https://unicode-table.com/en/#mathematical-operators
-
 // Custom keycodes with custom behaviour, starting at SAFE_RANGE
 enum preonic_keycodes {
     // Layers
     BASE = SAFE_RANGE,
     GAME,
     NUMPAD,
-    NP_LOWR,
-    NP_RAIS,
+    KP_LOWR,
+    KP_RAIS,
     GREEK,
     LOWER,
     RAISE,
@@ -96,8 +52,73 @@ enum preonic_keycodes {
     DO_SYMB,
 
     // Numpad
+    KP_FORA,
+    KP_EXST,
+    KP_ELEM,
+    KP_SUBS,
+    KP_SUMM,
+    KP_PROD,
+    KP_SSUB,
+    KP_ESBS,
+    KP_CONJ,
+    KP_DISJ,
+    KP_NEGA,
+    KP_SISC,
+    KP_SUNI,
+    KP_ELL1,
+    KP_ELL2,
+
+    KP_0,
+    KP_1,
     KP_DIV,
     KP_MUL,
+    KP_MINS,
+    KP_PLUS,
+    KP_EQLS,
+    KP_DOT,
+
+    KP_SNAT,
+    KP_SINT,
+    KP_SRAT,
+    KP_SREA,
+    KP_SCLX,
+    KP_SQTN,
+
+    // Numpad Lower
+    KPL_0,
+    KPL_1,
+    KPL_2,
+    KPL_3,
+    KPL_4,
+    KPL_5,
+    KPL_6,
+    KPL_7,
+    KPL_8,
+    KPL_9,
+    KPL_ADD,
+    KPL_SUB,
+    KPL_EQS,
+    KPL_LPA,
+    KPL_RPA,
+    KPL_VAR,
+
+    // Numpad Raise
+    KPR_0,
+    KPR_1,
+    KPR_2,
+    KPR_3,
+    KPR_4,
+    KPR_5,
+    KPR_6,
+    KPR_7,
+    KPR_8,
+    KPR_9,
+    KPR_ADD,
+    KPR_SUB,
+    KPR_EQS,
+    KPR_LPA,
+    KPR_RPA,
+    KPR_VAR,
 
     // Greek
     GK_ALPHA,
@@ -130,6 +151,16 @@ enum preonic_keycodes {
     GK_OMEGA,
 
     // Lower
+    LKC_CBE,
+    LKC_ULC,
+    LKC_URC,
+    LKC_LBU,
+    LKC_LBM,
+    LKC_LBL,
+    LKC_RBU,
+    LKC_RBM,
+    LKC_RBL,
+
     LKC_LRB,
     LKC_RRB,
     LKC_LCB,
@@ -139,11 +170,13 @@ enum preonic_keycodes {
     LKC_LAB,
     LKC_RAB,
 
+    LKC_END,
+    LKC_EMD,
+    LKC_DUN,
     LKC_UND,
     LKC_BTK,
     LKC_TLD,
-    LKC_SQT,
-    LKC_DQT,
+    LKC_QOT,
 
     LKC_SEP,
     LKC_SCN,
@@ -158,6 +191,13 @@ enum preonic_keycodes {
     RKC_TDM,
     RKC_YEN,
     RKC_CPR,
+
+    RKC_FQL,
+    RKC_FQR,
+    RKC_DQL,
+    RKC_DQR,
+    RKC_SQL,
+    RKC_SQR,
 
     // System
     REISUB,
@@ -209,11 +249,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 /* NumPad
  * ,-----------------------------------------------------------------------------------.
- * |      | ∀    | ∃  ∄ | ∈  ∉ | ⊂  ⊄ | NLCK | /  ÷ | *  × | -  ∓ | ℕ    | ℤ    | ℚ    |
+ * |      | ∀  ⎲ | ∃  ∄ | ∈  ∉ | ⊂  ⊄ | NLCK | /  ÷ | *  × | -  ∓ | ℕ    | ℤ    |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      | ∑    | ∏  ∐ | ∖    | ⊆  ⊈ | 7    | 8    | 9    | +  ± | ℝ    | ℂ    | ℍ    |
+ * |      | ∑  ⎳ | ∏  ∐ | ∖    | ⊆  ⊈ | 7    | 8    | 9    | +  ± | ℚ    | ℝ    |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      | ∧    | ∨    | ¬    |      | 4    | 5    | 6    | =  ≠ | ≔    |      |      |
+ * |      | ∧    | ∨    | ¬    |      | 4    | 5    | 6    | =  ≠ | ℂ    | ℍ    |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
  * |      | ∩    | ∪    | ⋯  ⋮ | ⋱  ⋰ | 1  ∞ | 2    | 3    | .  , |      |      |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
@@ -221,11 +261,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * `-----------------------------------------------------------------------------------'
  */
 [_NUMPAD] = {
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_NLCK, KP_DIV,  KP_MUL,  KC_PMNS, XXXXXXX, XXXXXXX, _______},
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_KP_7, KC_KP_8, KC_KP_9, KC_PPLS, XXXXXXX, XXXXXXX, _______},
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_KP_4, KC_KP_5, KC_KP_6, KC_PEQL, XXXXXXX, XXXXXXX, _______},
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_KP_1, KC_KP_2, KC_KP_3, KC_PDOT, XXXXXXX, XXXXXXX, _______},
-  {_______, _______, _______, _______, NP_LOWR, KC_KP_0, KC_KP_0, NP_RAIS, KC_PENT, XXXXXXX, XXXXXXX, XXXXXXX}
+  {_______, KP_FORA, KP_EXST, KP_ELEM, KP_SUBS, KC_NLCK, KP_DIV,  KP_MUL,  KP_MINS, KP_SNAT, KP_SINT, _______},
+  {_______, KP_SUMM, KP_PROD, KP_SSUB, KP_ESBS, KC_KP_7, KC_KP_8, KC_KP_9, KP_PLUS, KP_SRAT, KP_SREA, _______},
+  {_______, KP_CONJ, KP_DISJ, KP_NEGA, XXXXXXX, KC_KP_4, KC_KP_5, KC_KP_6, KP_EQLS, KP_SCLX, KP_SQTN, _______},
+  {_______, KP_SISC, KP_SUNI, KP_ELL1, KP_ELL2, KP_1,    KC_KP_2, KC_KP_3, KP_DOT,  XXXXXXX, XXXXXXX, _______},
+  {_______, _______, _______, _______, KP_LOWR, KP_0,    KP_0,    KP_RAIS, KC_PENT, XXXXXXX, XXXXXXX, XXXXXXX}
 },
 
 /* NumPad Lower
@@ -242,11 +282,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * `-----------------------------------------------------------------------------------'
  */
 [_NUMPAD_LOWER] = {
-  {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______},
-  {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______},
-  {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______},
-  {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______},
-  {_______, _______, _______, _______, NP_LOWR, _______, _______, XXXXXXX, _______, _______, _______, _______}
+  {_______, _______, _______, _______, _______, KPL_LPA, KPL_RPA, KPL_VAR, KPL_SUB, _______, _______, _______},
+  {_______, _______, _______, _______, _______, KPL_7,   KPL_8,   KPL_9,   KPL_ADD, _______, _______, _______},
+  {_______, _______, _______, _______, _______, KPL_4,   KPL_5,   KPL_6,   KPL_EQS, _______, _______, _______},
+  {_______, _______, _______, _______, _______, KPL_1,   KPL_2,   KPL_3,   _______, _______, _______, _______},
+  {_______, _______, _______, _______, KP_LOWR, KPL_0,   KPL_0,   XXXXXXX, _______, _______, _______, _______}
 },
 
 /* NumPad Raise
@@ -263,11 +303,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * `-----------------------------------------------------------------------------------'
  */
 [_NUMPAD_RAISE] = {
-  {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______},
-  {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______},
-  {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______},
-  {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______},
-  {_______, _______, _______, _______, XXXXXXX, _______, _______, NP_RAIS, _______, _______, _______, _______}
+  {_______, _______, _______, _______, _______, KPR_LPA, KPR_RPA, KPR_VAR, KPR_SUB, _______, _______, _______},
+  {_______, _______, _______, _______, _______, KPR_7,   KPR_8,   KPR_9,   KPR_ADD, _______, _______, _______},
+  {_______, _______, _______, _______, _______, KPR_4,   KPR_5,   KPR_6,   KPR_EQS, _______, _______, _______},
+  {_______, _______, _______, _______, _______, KPR_1,   KPR_2,   KPR_3,   _______, _______, _______, _______},
+  {_______, _______, _______, _______, XXXXXXX, KPR_0,   KPR_0,   KP_RAIS, _______, _______, _______, _______}
 },
 
 /* Greek
@@ -293,22 +333,22 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 /* Lower
  * ,-----------------------------------------------------------------------------------.
- * |      |      | ⎪    | ⎧    | ⎫    | (  ⟬ | )  ⟭ | en–  | em—  |      |      |      |
+ * |      |      | ⎪    | ⎧  ⎡ | ⎫  ⎤ | (  ⟬ | )  ⟭ | en–  | em—  |      |      |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      | ⎰    | ⎨    | ⎬    | {  ⟪ | }  ⟫ | ‗    | _  ‾ | |  ‖ | ;    |      |
+ * |      |      | ⎰    | ⎨  ⎢ | ⎬  ⎥ | {  ⟪ | }  ⟫ | ‗    | _  ‾ | |  ‖ | ;    |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      | ⎱    | ⎩    | ⎭    | [  ⟦ | ]  ⟧ | `    | ~  ≈ | :    | .  … |      |
+ * |      |      | ⎱    | ⎩  ⎣ | ⎭  ⎦ | [  ⟦ | ]  ⟧ | `    | ~  ≈ | :    | .  … |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      | <  ⟨ | >  ⟩ | '    | "    | !  ‼ | ?  ⁇ |      |
+ * |      |      |      |      |      | <  ⟨ | >  ⟩ |      | '  " | !  ‼ | ?  ⁇ |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
  * |      |      |      |      |      |             |      |      |      |      |      |
  * `-----------------------------------------------------------------------------------'
  */
 [_LOWER] = {
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, LKC_LRB, LKC_RRB, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, LKC_LCB, LKC_RCB, XXXXXXX, LKC_UND, LKC_SEP, LKC_SCN, _______},
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, LKC_LSB, LKC_RSB, LKC_BTK, LKC_TLD, LKC_CLN, LKC_FSP, _______},
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, LKC_LAB, LKC_RAB, LKC_SQT, LKC_DQT, LKC_EXC, LKC_QSM, _______},
+  {_______, XXXXXXX, LKC_CBE, LKC_LBU, LKC_RBU, LKC_LRB, LKC_RRB, LKC_END, LKC_EMD, XXXXXXX, XXXXXXX, _______},
+  {_______, XXXXXXX, LKC_ULC, LKC_LBM, LKC_RBM, LKC_LCB, LKC_RCB, LKC_DUN, LKC_UND, LKC_SEP, LKC_SCN, _______},
+  {_______, XXXXXXX, LKC_URC, LKC_LBL, LKC_RBL, LKC_LSB, LKC_RSB, LKC_BTK, LKC_TLD, LKC_CLN, LKC_FSP, _______},
+  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, LKC_LAB, LKC_RAB, XXXXXXX, LKC_QOT, LKC_EXC, LKC_QSM, _______},
   {_______, _______, _______, _______, _______, _______, _______, _______, _______, XXXXXXX, XXXXXXX, XXXXXXX}
 },
 
@@ -326,10 +366,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * `-----------------------------------------------------------------------------------'
  */
 [_RAISE] = {
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
+  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, RKC_FQL, RKC_FQR, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
   {_______, XXXXXXX, XXXXXXX, RKC_EUR, RKC_RTM, RKC_TDM, RKC_YEN, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
-  {_______, XXXXXXX, XXXXXXX, RKC_CPR, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_MPRV, KC_MNXT, KC_MPLY},
+  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, RKC_DQL, RKC_DQR, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
+  {_______, XXXXXXX, XXXXXXX, RKC_CPR, XXXXXXX, RKC_SQL, RKC_SQR, XXXXXXX, XXXXXXX, KC_MPRV, KC_MNXT, KC_MPLY},
   {_______, _______, _______, _______, _______, _______, _______, _______, _______, KC_VOLD, KC_VOLU, KC_MUTE}
 },
 
@@ -627,6 +667,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case GAME: return set_default_layer_sound(record, _GAME);
         case NUMPAD: return toggle_layer(record, _NUMPAD);
+        case KP_LOWR: return toggle_layer(record, _NUMPAD_LOWER);
+        case KP_RAIS: return toggle_layer(record, _NUMPAD_RAISE);
         case GREEK: return toggle_layer(record, _GREEK);
         case LOWER: return toggle_layer(record, _LOWER);
         case RAISE: return toggle_layer(record, _RAISE);
@@ -654,65 +696,152 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case LE_SYMB: return override_key(record, RALT(KC_Y), KC_NO);
         case DO_SYMB: return override_key(record, RALT(KC_U), KC_NO);
 
+        // Numpad
+        case KP_FORA: return override_key(record, UC(0x2200), UC(0x23B2));
+        case KP_EXST: return override_key(record, UC(0x2203), UC(0x2204));
+        case KP_ELEM: return override_key(record, UC(0x2208), UC(0x2209));
+        case KP_SUBS: return override_key(record, UC(0x2282), UC(0x2284));
+        case KP_SUMM: return override_key(record, UC(0x2211), UC(0x23B3));
+        case KP_PROD: return override_key(record, UC(0x220F), UC(0x2210));
+        case KP_SSUB: return no_shift(record, UC(0x2216));
+        case KP_ESBS: return override_key(record, UC(0x2286), UC(0x2288));
+        case KP_CONJ: return no_shift(record, UC(0x2227));
+        case KP_DISJ: return no_shift(record, UC(0x2228));
+        case KP_NEGA: return no_shift(record, UC(0x00AC));
+        case KP_SISC: return no_shift(record, UC(0x2229));
+        case KP_SUNI: return no_shift(record, UC(0x222A));
+        case KP_ELL1: return override_key(record, UC(0x22EF), UC(0x22EE));
+        case KP_ELL2: return override_key(record, UC(0x22F1), UC(0x22F0));
+
+        case KP_0: return override_key(record, KC_KP_0, UC(0x2205));
+        case KP_1: return override_key(record, KC_KP_1, UC(0x221E));
         case KP_DIV: return override_key(record, KC_PSLS, S(RALT(KC_LBRC)));
         case KP_MUL: return override_key(record, KC_PAST, S(RALT(KC_RBRC)));
+        case KP_MINS: return override_key(record, KC_PMNS, UC(0x2213));
+        case KP_PLUS: return override_key(record, KC_PPLS, UC(0x00B1));
+        case KP_EQLS: return override_key(record, KC_PEQL, UC(0x2260));
+        case KP_DOT: return override_key(record, KC_PDOT, KC_COMM);
 
-        case GK_ALPHA: return greek(record, UC_GK_ALPHA);
-        case GK_BETA: return greek(record, UC_GK_BETA);
-        case GK_GAMMA: return greek(record, UC_GK_GAMMA);
-        case GK_DELTA: return greek(record, UC_GK_DELTA);
-        case GK_EPSILON: return greek(record, UC_GK_EPSILON);
-        case GK_ZETA: return greek(record, UC_GK_ZETA);
-        case GK_ETA: return greek(record, UC_GK_ETA);
-        case GK_THETA1: return greek(record, UC_GK_THETA);
-        case GK_THETA2: return override_key(record, UC(UC_GK_ALT_THETA), UC(UC_GK_THETA));
-        case GK_IOTA: return greek(record, UC_GK_IOTA);
-        case GK_KAPPA: return greek(record, UC_GK_KAPPA);
-        case GK_LAMBDA: return greek(record, UC_GK_LAMBDA);
-        case GK_MU: return greek(record, UC_GK_MU);
-        case GK_NU: return greek(record, UC_GK_NU);
-        case GK_XI: return greek(record, UC_GK_XI);
-        case GK_OMICRON: return greek(record, UC_GK_OMICRON);
-        case GK_PI: return greek(record, UC_GK_PI);
-        case GK_RHO: return greek(record, UC_GK_RHO);
-        case GK_SIGMA1: return greek(record, UC_GK_SIGMA);
-        case GK_SIGMA2: return override_key(record, UC(UC_GK_ALT_SIGMA), UC(UC_GK_SIGMA));
-        case GK_TAU: return greek(record, UC_GK_TAU);
-        case GK_UPSILON: return greek(record, UC_GK_UPSILON);
-        case GK_PHI: return greek(record, UC_GK_PHI);
-        case GK_CHI: return greek(record, UC_GK_CHI);
-        case GK_PSI: return greek(record, UC_GK_PSI);
-        case GK_OMEGA: return greek(record, UC_GK_OMEGA);
+        case KP_SNAT: return no_shift(record, UC(0x2115));
+        case KP_SINT: return no_shift(record, UC(0x2124));
+        case KP_SRAT: return no_shift(record, UC(0x211A));
+        case KP_SREA: return no_shift(record, UC(0x211D));
+        case KP_SCLX: return no_shift(record, UC(0x2102));
+        case KP_SQTN: return no_shift(record, UC(0x210D));
+
+        case GK_ALPHA: return greek(record, 0x0391);
+        case GK_BETA: return greek(record, 0x0392);
+        case GK_GAMMA: return greek(record, 0x0393);
+        case GK_DELTA: return greek(record, 0x0394);
+        case GK_EPSILON: return greek(record, 0x0395);
+        case GK_ZETA: return greek(record, 0x0396);
+        case GK_ETA: return greek(record, 0x0397);
+        case GK_THETA1: return greek(record, 0x0398);
+        case GK_THETA2: return override_key(record, UC(0x03D1), UC(0x0398));
+        case GK_IOTA: return greek(record, 0x0399);
+        case GK_KAPPA: return greek(record, 0x039A);
+        case GK_LAMBDA: return greek(record, 0x039B);
+        case GK_MU: return greek(record, 0x039C);
+        case GK_NU: return greek(record, 0x039D);
+        case GK_XI: return greek(record, 0x039E);
+        case GK_OMICRON: return greek(record, 0x039F);
+        case GK_PI: return greek(record, 0x03A0);
+        case GK_RHO: return greek(record, 0x03A1);
+        case GK_SIGMA1: return greek(record, 0x03A3);
+        case GK_SIGMA2: return override_key(record, UC(0x03C2), UC(0x03A3));
+        case GK_TAU: return greek(record, 0x03A4);
+        case GK_UPSILON: return greek(record, 0x03A5);
+        case GK_PHI: return greek(record, 0x03A6);
+        case GK_CHI: return greek(record, 0x03A7);
+        case GK_PSI: return greek(record, 0x03A8);
+        case GK_OMEGA: return greek(record, 0x03A9);
+
+        // Numpad Lower
+        case KPL_0: 
+        case KPL_1:
+        case KPL_2:
+        case KPL_3:
+        case KPL_4:
+        case KPL_5:
+        case KPL_6:
+        case KPL_7:
+        case KPL_8:
+        case KPL_9:
+        case KPL_ADD:
+        case KPL_SUB:
+        case KPL_EQS:
+        case KPL_LPA:
+        case KPL_RPA:
+            return no_shift(record, UC((0x2080 + keycode - KPL_0)));
+        case KPL_VAR: return override_key(record, UC(0x2099), UC(0x1D62));
+
+        // Numpad Raise
+        case KPR_0:
+        case KPR_4:
+        case KPR_5:
+        case KPR_6:
+        case KPR_7:
+        case KPR_8:
+        case KPR_9:
+        case KPR_ADD:
+        case KPR_SUB:
+        case KPR_EQS:
+        case KPR_LPA:
+        case KPR_RPA:
+            return no_shift(record, UC((0x2070 + keycode - KPR_0)));
+        case KPR_1: return no_shift(record, UC(0x00B9));
+        case KPR_2: return no_shift(record, UC(0x00B2));
+        case KPR_3: return no_shift(record, UC(0x00B3));
+        case KPR_VAR: return override_key(record, UC(0x207F), UC(0x2071));
 
         // Lower
-        case LKC_LRB: return no_shift(record, S(KC_RBRC));
-        case LKC_RRB: return no_shift(record, KC_RBRC);
-        case LKC_LCB: return no_shift(record, RALT(KC_9));
-        case LKC_RCB: return no_shift(record, RALT(KC_0));
-        case LKC_LSB: return no_shift(record, RALT(KC_LBRC));
-        case LKC_RSB: return no_shift(record, RALT(KC_RBRC));
-        case LKC_LAB: return no_shift(record, RALT(KC_COMM));
-        case LKC_RAB: return no_shift(record, RALT(KC_DOT));
+        case LKC_CBE: return no_shift(record, UC(0x23AA));
+        case LKC_ULC: return no_shift(record, UC(0x23B0));
+        case LKC_URC: return no_shift(record, UC(0x23B1));
+        case LKC_LBU: return override_key(record, UC(0x23A7), UC(0x23A1));
+        case LKC_LBM: return override_key(record, UC(0x23A8), UC(0x23A2));
+        case LKC_LBL: return override_key(record, UC(0x23A9), UC(0x23A3));
+        case LKC_RBU: return override_key(record, UC(0x23AB), UC(0x23A4));
+        case LKC_RBM: return override_key(record, UC(0x23AC), UC(0x23A5));
+        case LKC_RBL: return override_key(record, UC(0x23AD), UC(0x23A6));
 
-        case LKC_UND: return no_shift(record, S(KC_SLSH));
+        case LKC_LRB: return override_key(record, S(KC_RBRC), UC(0x27EC));
+        case LKC_RRB: return override_key(record, KC_RBRC, UC(0x27ED));
+        case LKC_LCB: return override_key(record, RALT(KC_9), UC(0x27EA));
+        case LKC_RCB: return override_key(record, RALT(KC_0), UC(0x27EB));
+        case LKC_LSB: return override_key(record, RALT(KC_LBRC), UC(0x27E6));
+        case LKC_RSB: return override_key(record, RALT(KC_RBRC), UC(0x27E7));
+        case LKC_LAB: return override_key(record, RALT(KC_COMM), UC(0x27E8));
+        case LKC_RAB: return override_key(record, RALT(KC_DOT), UC(0x27E9));
+
+        case LKC_END: return no_shift(record, UC(0x2013));
+        case LKC_EMD: return no_shift(record, UC(0x2014));
+        case LKC_DUN: return no_shift(record, UC(0x2017));
+        case LKC_UND: return override_key(record, S(KC_SLSH), UC(0x203E));
         case LKC_BTK: return no_shift(record, RALT(KC_GRV));
-        case LKC_TLD: return no_shift(record, S(RALT(KC_GRV)));
-        case LKC_SQT: return no_shift(record, RALT(KC_QUOT));
-        case LKC_DQT: return no_shift(record, S(KC_SCLN));
+        case LKC_TLD: return override_key(record, S(RALT(KC_GRV)), UC(0x2248));
+        case LKC_QOT: return override_key(record, RALT(KC_QUOT), S(KC_SCLN));
 
-        case LKC_SEP: return no_shift(record, S(RALT(KC_BSLS)));
+        case LKC_SEP: return override_key(record, S(RALT(KC_BSLS)), UC(0x2016));
         case LKC_SCN: return no_shift(record, KC_GRV);
         case LKC_CLN: return no_shift(record, S(KC_DOT));
-        case LKC_FSP: return no_shift(record, KC_DOT);
-        case LKC_EXC: return no_shift(record, S(KC_QUOT));
-        case LKC_QSM: return no_shift(record, S(KC_COMM));
+        case LKC_FSP: return override_key(record, KC_DOT, UC(0x2026));
+        case LKC_EXC: return override_key(record, S(KC_QUOT), UC(0x203C));
+        case LKC_QSM: return override_key(record, S(KC_COMM), UC(0x2047));
 
         // Raise
         case RKC_EUR: return no_shift(record, RALT(KC_E));
         case RKC_RTM: return no_shift(record, S(RALT(KC_R)));
-        case RKC_TDM: return override_key(record, UC(LC_LL_TM), KC_NO);
+        case RKC_TDM: return no_shift(record, UC(0x2122));
         case RKC_YEN: return no_shift(record, S(RALT(KC_Y)));
         case RKC_CPR: return no_shift(record, S(RALT(KC_C)));
+
+        case RKC_FQL: return override_key(record, UC(0x00AB), UC(0x2039));
+        case RKC_FQR: return override_key(record, UC(0x00BB), UC(0x203A));
+        case RKC_DQL: return override_key(record, UC(0x201E), UC(0x201D));
+        case RKC_DQR: return no_shift(record, UC(0x201C));
+        case RKC_SQL: return override_key(record, UC(0x201A), UC(0x2019));
+        case RKC_SQR: return no_shift(record, UC(0x2018));
 
         // System
         case REISUB: return reisub_press(record);

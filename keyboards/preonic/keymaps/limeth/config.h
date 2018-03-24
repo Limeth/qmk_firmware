@@ -3,6 +3,9 @@
 
 #include "config_common.h"
 
+#define NO_DEBUG
+#define NO_PRINT
+
 #ifdef AUDIO_ENABLE
     #define STARTUP_SONG SONG(PREONIC_SOUND)
     // #define STARTUP_SONG SONG(NO_SOUND)
