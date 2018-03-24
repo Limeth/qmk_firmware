@@ -1,19 +1,22 @@
 #include "preonic.h"
 #include "action_layer.h"
+#include "wait.h"
 #define XXXXXXX KC_NO
 
 enum preonic_layers {
   _BASE,
+  _GAME,
   _NUMPAD,
+  _NUMPAD_LOWER,
+  _NUMPAD_RAISE,
   _GREEK,
   _LOWER,
   _RAISE,
   _ADJUST,
+  _SYSTEM,
 };
 
 // TODO: Greek: https://unicode-table.com/en/0370/
-#define UC_GK_A 0x391
-
 enum unicode_greek {
     UC_GK_ALPHA = 0x391,
     UC_GK_BETA,
@@ -46,16 +49,30 @@ enum unicode_greek {
     UC_GK_ALT_SIGMA = 0x3c2,
 };
 
+enum unicode_letterlike {
+    UC_LL_COMPLEX = 0x2102,
+    UC_LL_QUATERNION = 0x210d,
+    LC_LL_NATURAL = 0x2115,
+    LC_LL_RATIONAL = 0x211a,
+    LC_LL_REAL = 0x211d,
+    LC_LL_TM = 0x2122,
+    LC_LL_INTEGER = 0x2124,
+};
+
 // TODO: Add math ops: https://unicode-table.com/en/#mathematical-operators
 
 // Custom keycodes with custom behaviour, starting at SAFE_RANGE
 enum preonic_keycodes {
     // Layers
     BASE = SAFE_RANGE,
+    GAME,
     NUMPAD,
+    NP_LOWR,
+    NP_RAIS,
     GREEK,
     LOWER,
     RAISE,
+    SYSTEM,
 
     // Top row
     TR_1,
@@ -77,6 +94,10 @@ enum preonic_keycodes {
     UP_SYMB,
     LE_SYMB,
     DO_SYMB,
+
+    // Numpad
+    KP_DIV,
+    KP_MUL,
 
     // Greek
     GK_ALPHA,
@@ -107,6 +128,39 @@ enum preonic_keycodes {
     GK_CHI,
     GK_PSI,
     GK_OMEGA,
+
+    // Lower
+    LKC_LRB,
+    LKC_RRB,
+    LKC_LCB,
+    LKC_RCB,
+    LKC_LSB,
+    LKC_RSB,
+    LKC_LAB,
+    LKC_RAB,
+
+    LKC_UND,
+    LKC_BTK,
+    LKC_TLD,
+    LKC_SQT,
+    LKC_DQT,
+
+    LKC_SEP,
+    LKC_SCN,
+    LKC_CLN,
+    LKC_FSP,
+    LKC_EXC,
+    LKC_QSM,
+
+    // Raise
+    RKC_EUR,
+    RKC_RTM,
+    RKC_TDM,
+    RKC_YEN,
+    RKC_CPR,
+
+    // System
+    REISUB,
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -117,7 +171,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |------+------+------+------+------+------+------+------+------+------+------+------|
  * | Tab  | q  Q | w  W | e  E | r  R | t  T | y  Y | u  U | i  I | o  O | p  P | Del  |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * | Esc  | a  A | s  S | d  D | f  F | g  G | h  H | j  J | k  K | l  L | ,    |Enter |
+ * | Ctrl | a  A | s  S | d  D | f  F | g  G | h  H | j  J | k  K | l  L | ,    |Enter |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
  * |LShift| z  Z | x  X | c  C | v  V | b  B | n  N | m  M | ´  ° | ˇ  ¨ |  Up  |RShift|
  * |------+------+------+------+------+------+------+------+------+------+------+------|
@@ -132,25 +186,88 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   {NUMPAD,  GREEK, KC_LGUI, KC_LALT, LOWER,   KC_SPC,  KC_SPC,  RAISE,   KC_RALT, KC_LEFT, KC_DOWN, KC_RGHT}
 },
 
+/* Qwertz Game (Czech layout)
+ * ,-----------------------------------------------------------------------------------.
+ * | Esc  | +  1 | ě  2 | š  3 | č  4 | ř  5 | ž  6 | ý  7 | á  8 | í  9 | é  0 | Bksp |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * | Tab  | q  Q | w  W | e  E | r  R | t  T | y  Y | u  U | i  I | o  O | p  P | Del  |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * | Ctrl | a  A | s  S | d  D | f  F | g  G | h  H | j  J | k  K | l  L | ,    |Enter |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |LShift| z  Z | x  X | c  C | v  V | b  B | n  N | m  M | ´  ° | ˇ  ¨ |  Up  |RShift|
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |NumPad|Greek | LGUI | LAlt |Lower |    Space    |Raise | RAlt | Left | Down |Right |
+ * `-----------------------------------------------------------------------------------'
+ */
+[_GAME] = {
+  {KC_ESC,  KC_1,  KC_2,    KC_3,    KC_4,    KC_5,    KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_BSPC},
+  {KC_TAB,  KC_Q,  KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_DEL},
+  {KC_LCTL, KC_A,  KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    COMMA,   KC_ENT},
+  {KC_LSFT, KC_Z,  KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    LDR_LNG, LDR_ACC, KC_UP,   KC_RSFT},
+  {NUMPAD,  GREEK, KC_LGUI, KC_LALT, LOWER,   KC_SPC,  KC_SPC,  RAISE,   KC_RALT, KC_LEFT, KC_DOWN, KC_RGHT}
+},
+
 /* NumPad
  * ,-----------------------------------------------------------------------------------.
- * |      |      |      |      |      | NLCK | /    | *    | -    |      |      |      |
+ * |      | ∀    | ∃  ∄ | ∈  ∉ | ⊂  ⊄ | NLCK | /  ÷ | *  × | -  ∓ | ℕ    | ℤ    | ℚ    |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      | 7    | 8    | 9    | +    |      |      |      |
+ * |      | ∑    | ∏  ∐ | ∖    | ⊆  ⊈ | 7    | 8    | 9    | +  ± | ℝ    | ℂ    | ℍ    |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      | 4    | 5    | 6    | =    |      |      |      |
+ * |      | ∧    | ∨    | ¬    |      | 4    | 5    | 6    | =  ≠ | ≔    |      |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      | 1    | 2    | 3    | ,    |      |      |      |
+ * |      | ∩    | ∪    | ⋯  ⋮ | ⋱  ⋰ | 1  ∞ | 2    | 3    | .  , |      |      |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      |    0        | .    |Enter |      |      |      |
+ * |      |      |      |      |NPLowr| 0      ∅    |NPRais|Enter |      |      |      |
  * `-----------------------------------------------------------------------------------'
  */
 [_NUMPAD] = {
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_NLCK, KC_PSLS, KC_PAST, KC_PMNS, XXXXXXX, XXXXXXX, _______},
+  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_NLCK, KP_DIV,  KP_MUL,  KC_PMNS, XXXXXXX, XXXXXXX, _______},
   {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_KP_7, KC_KP_8, KC_KP_9, KC_PPLS, XXXXXXX, XXXXXXX, _______},
   {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_KP_4, KC_KP_5, KC_KP_6, KC_PEQL, XXXXXXX, XXXXXXX, _______},
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_KP_1, KC_KP_2, KC_KP_3, KC_PCMM, XXXXXXX, XXXXXXX, _______},
-  {_______, _______, _______, _______, XXXXXXX, KC_KP_0, KC_KP_0, KC_PDOT, KC_PENT, _______, _______, _______}
+  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_KP_1, KC_KP_2, KC_KP_3, KC_PDOT, XXXXXXX, XXXXXXX, _______},
+  {_______, _______, _______, _______, NP_LOWR, KC_KP_0, KC_KP_0, NP_RAIS, KC_PENT, XXXXXXX, XXXXXXX, XXXXXXX}
+},
+
+/* NumPad Lower
+ * ,-----------------------------------------------------------------------------------.
+ * |      |      |      |      |      | ₍    | ₎    | ₙ  ᵢ | ₋    |      |      |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      |      |      | ₇    | ₈    | ₉    | ₊    |      |      |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      |      |      | ₄    | ₅    | ₆    | ₌    |      |      |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      |      |      | ₁    | ₂    | ₃    |      |      |      |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      |      |NPLowr|    ₀        |      |      |      |      |      |
+ * `-----------------------------------------------------------------------------------'
+ */
+[_NUMPAD_LOWER] = {
+  {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______},
+  {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______},
+  {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______},
+  {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______},
+  {_______, _______, _______, _______, NP_LOWR, _______, _______, XXXXXXX, _______, _______, _______, _______}
+},
+
+/* NumPad Raise
+ * ,-----------------------------------------------------------------------------------.
+ * |      |      |      |      |      | ⁽    | ⁾    | ⁿ  ⁱ | ⁻    |      |      |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      |      |      | ⁷    | ⁸    | ⁹    | ⁺    |      |      |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      |      |      | ⁴    | ⁵    | ⁶    | ⁼    |      |      |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      |      |      | ¹    | ²    | ³    |      |      |      |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      |      |      |    ⁰        |NPRais|      |      |      |      |
+ * `-----------------------------------------------------------------------------------'
+ */
+[_NUMPAD_RAISE] = {
+  {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______},
+  {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______},
+  {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______},
+  {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______},
+  {_______, _______, _______, _______, XXXXXXX, _______, _______, NP_RAIS, _______, _______, _______, _______}
 },
 
 /* Greek
@@ -176,65 +293,86 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 /* Lower
  * ,-----------------------------------------------------------------------------------.
- * |      |      |      |      |      | (    | )    |      |      |      |      |      |
- * |------+------+------+------+------+------+------+-------------+------+------+------|
- * |      |      |      |      |      | {    | }    |      |      | |    | ;    |      |
- * |------+------+------+------+------+------+------+-------------+------+------+------|
- * |      |      |      |      |      | [    | ]    |      |      | :    | .    |      |
- * |------+------+------+------+------+------+------+------|------+------+------+------|
- * |      |      |      |      |      | <    | >    |      |      | !    | ?    |      |
+ * |      |      | ⎪    | ⎧    | ⎫    | (  ⟬ | )  ⟭ | en–  | em—  |      |      |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      |             |      | Prev | Vol- | Stop | Mute |
+ * |      |      | ⎰    | ⎨    | ⎬    | {  ⟪ | }  ⟫ | ‗    | _  ‾ | |  ‖ | ;    |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      | ⎱    | ⎩    | ⎭    | [  ⟦ | ]  ⟧ | `    | ~  ≈ | :    | .  … |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      |      |      | <  ⟨ | >  ⟩ | '    | "    | !  ‼ | ?  ⁇ |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      |      |      |             |      |      |      |      |      |
  * `-----------------------------------------------------------------------------------'
  */
 [_LOWER] = {
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_LPRN,       KC_RPRN,      _______},
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_LCBR,       KC_RCBR,      _______},
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_LBRC,       KC_RBRC,      _______},
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, RALT(KC_COMM), RALT(KC_DOT), _______},
-  {_______, _______, _______, _______, _______, _______, _______, _______, KC_MNXT, KC_VOLD,       KC_VOLU,      KC_MPLY}
+  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, LKC_LRB, LKC_RRB, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
+  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, LKC_LCB, LKC_RCB, XXXXXXX, LKC_UND, LKC_SEP, LKC_SCN, _______},
+  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, LKC_LSB, LKC_RSB, LKC_BTK, LKC_TLD, LKC_CLN, LKC_FSP, _______},
+  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, LKC_LAB, LKC_RAB, LKC_SQT, LKC_DQT, LKC_EXC, LKC_QSM, _______},
+  {_______, _______, _______, _______, _______, _______, _______, _______, _______, XXXXXXX, XXXXXXX, XXXXXXX}
 },
 
 /* Raise
  * ,-----------------------------------------------------------------------------------.
- * |      |      |      |      |      |      | ÷    | ×    |      |      |      |      |
- * |------+------+------+------+------+------+------+-------------+------+------+------|
- * |      |      |      |      |      |      |      |      |      |      |      |      |
- * |------+------+------+------+------+------+------+-------------+------+------+------|
- * |      |      |      |      |      |      |      |      |      |      |      |      |
- * |------+------+------+------+------+------+------+------|------+------+------+------|
- * |      |      |      |      |      |      |      |      |      |      |      |      |
+ * |      |      |      |      |      | «  ‹ | »  › |      |      |      |      |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      |             |      | Next | Vol+ | Play | Mute |
+ * |      |      |      | €    | ®    | ™    | ¥    |      |      |      |      |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      |      |      | „  ” | “    |      |      | £    |      |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      | ©  ¢ |      | ‚  ’ | ‘    |      |      | Prev | Next | Play |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      |      |      |             |      |      | Vol- | Vol+ | Mute |
  * `-----------------------------------------------------------------------------------'
  */
 [_RAISE] = {
-  {KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_BSPC},
-  {KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_DEL},
-  {KC_DEL,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_MINS, KC_EQL,  KC_LBRC, KC_RBRC, KC_BSLS},
-  {_______, KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  KC_NUHS, KC_NUBS, KC_PGUP, KC_PGDN, _______},
-  {_______, _______, _______, _______, _______, _______, _______, _______, KC_MNXT, KC_VOLD, KC_VOLU, KC_MPLY}
+  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
+  {_______, XXXXXXX, XXXXXXX, RKC_EUR, RKC_RTM, RKC_TDM, RKC_YEN, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
+  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
+  {_______, XXXXXXX, XXXXXXX, RKC_CPR, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_MPRV, KC_MNXT, KC_MPLY},
+  {_______, _______, _______, _______, _______, _______, _______, _______, _______, KC_VOLD, KC_VOLU, KC_MUTE}
 },
 
 /* Adjust (Lower + Raise)
  * ,-----------------------------------------------------------------------------------.
  * |  F1  |  F2  |  F3  |  F4  |  F5  |  F6  |  F7  |  F8  |  F9  |  F10 |  F11 |  F12 |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      | Reset|      |      |      |      |      |      |      |      |      |      |
- * |------+------+------+------+------+-------------+------+------+------+------+------|
- * |      |      | Scale|Aud on|AudOff|AGnorm|AGswap| Base |      |      |      |      |
- * |------+------+------+------+------+------|------+------+------+------+------+------|
+ * |      | Reset|      |      |      |      |      |      |      |      |      | Base |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      | Scale|Aud on|AudOff|AGnorm|AGswap|      |      |      |      | Game |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
  * |      |Voice-|Voice+|Mus on|MusOff|MidiOn|MidOff|      |      |      |      |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      |             |      |      |      |      |      |
+ * |      |      |      |      |      |   System    |      |      |      |      |      |
  * `-----------------------------------------------------------------------------------'
  */
 [_ADJUST] = {
   {KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12},
-  {XXXXXXX, RESET,   DEBUG,   XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, TERM_ON, TERM_OFF,XXXXXXX, XXXXXXX, XXXXXXX},
-  {XXXXXXX, XXXXXXX, MU_MOD,  AU_ON,   AU_OFF,  AG_NORM, AG_SWAP, BASE,    XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX},
+  {XXXXXXX, RESET,   DEBUG,   XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, TERM_ON, TERM_OFF,XXXXXXX, XXXXXXX, BASE},
+  {XXXXXXX, XXXXXXX, MU_MOD,  AU_ON,   AU_OFF,  AG_NORM, AG_SWAP, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, GAME},
   {XXXXXXX, MUV_DE,  MUV_IN,  MU_ON,   MU_OFF,  MI_ON,   MI_OFF,  XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX},
-  {XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______, XXXXXXX, XXXXXXX, _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX}
+  {XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______, SYSTEM,  SYSTEM,  _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX}
+},
+
+/* System (Adjust + Spacebar)
+ * ,-----------------------------------------------------------------------------------.
+ * | Reset|      |      |      |      |      |      |      |      |      |      |REISUB|
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      |      |      |      |      |      |      |      |      |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      |      |      |      |      |      |      |      |      |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      |      |      |      |      |      |      |      |      |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * |      |      |      |      |      |             |      |      |      |      |      |
+ * `-----------------------------------------------------------------------------------'
+ */
+[_SYSTEM] = {
+  {RESET,   XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,  REISUB},
+  {XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX},
+  {XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX},
+  {XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX},
+  {XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______, _______, _______, _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX}
 }
 
 
@@ -316,12 +454,27 @@ bool override_key(keyrecord_t *record, uint16_t normal, uint16_t shifted) {
     return false;
 }
 
+bool no_shift(keyrecord_t *record, uint16_t code) {
+    return override_key(record, code, KC_NO);
+}
+
 bool us_key(keyrecord_t *record, uint16_t code) {
     return override_key(record, S(code), RALT(code));
 }
 
 bool greek(keyrecord_t *record, uint16_t code) {
     return override_key(record, UC((code + 0x20)), UC(code));
+}
+
+void reisub_arming_act_upon(bool);
+
+void system_layer_change_state(bool active) {
+    if (active) {
+        layer_on(_SYSTEM);
+    } else {
+        reisub_arming_act_upon(false);
+        layer_off(_SYSTEM);
+    }
 }
 
 bool toggle_layer(keyrecord_t *record, uint8_t layer) {
@@ -335,13 +488,102 @@ bool toggle_layer(keyrecord_t *record, uint8_t layer) {
         layer_off(layer);
 
         if (layer == _LOWER || layer == _RAISE) {
+            system_layer_change_state(false);
             update_tri_layer(_LOWER, _RAISE, _ADJUST);
         }
     }
     return false;
 }
 
+#define REP0(...)
+#define REP1(...) __VA_ARGS__
+#define REP2(...) REP1(__VA_ARGS__) __VA_ARGS__
+#define REP3(...) REP2(__VA_ARGS__) __VA_ARGS__
+#define REP4(...) REP3(__VA_ARGS__) __VA_ARGS__
+
+#define REISUB_TAP(k) \
+    SEND_STRING(SS_TAP(k)); \
+    PLAY_SONG(initiation_beep); \
+    wait_ms(3000);
+#define REISUB_TAP_FINAL(k) \
+    SEND_STRING(SS_TAP(k)); \
+    PLAY_SONG(initiation_beep_final);
+
+#define REISUB_ARMING_MILLIS 3000
+#define REISUB_ARMING_SOUND_PERIOD 250
+
+static float arming_start[][2] = SONG(M__NOTE(_A3, 2), M__NOTE(_A4, 2), M__NOTE(_A5, 2), M__NOTE(_A6, 2));
+static float arming_beep[][2] = SONG(M__NOTE(_A6, 4));
+static float arming_cancel[][2] = SONG(M__NOTE(_A8, 8));
+static float initiation_beep[][2] = SONG(REP4(M__NOTE(_A6, 2), M__NOTE(_A5, 2), M__NOTE(_A4, 2), M__NOTE(_A3, 2), ));
+static float initiation_beep_final[][2] = SONG(REP4(M__NOTE(_A6, 2), M__NOTE(_A5, 2), M__NOTE(_A4, 2), M__NOTE(_A3, 2), )M__NOTE(_A3, 30));
+static bool reisub_arming = false;
+static uint16_t reisub_press_timer = 0;
+static uint16_t reisub_arming_sounds_played;
+static bool reisub_initiated = false;
+
+void reisub_arming_act_upon(bool arming) {
+    if (reisub_arming != arming) {
+        if (arming) {
+            PLAY_SONG(arming_start);
+            reisub_press_timer = timer_read();
+            reisub_arming_sounds_played = 0;
+        } else {
+            PLAY_SONG(arming_cancel);
+        }
+
+        reisub_arming = arming;
+    }
+}
+
+bool reisub_press(keyrecord_t *record) {
+    reisub_arming_act_upon(record->event.pressed);
+    return false;
+}
+
+void reisub_initiate(void) {
+    reisub_initiated = true;
+    reisub_arming = false;
+
+    SEND_STRING(SS_DOWN(X_LSHIFT));
+    REISUB_TAP(X_R);
+    REISUB_TAP(X_E);
+    REISUB_TAP(X_I);
+    REISUB_TAP(X_S);
+    REISUB_TAP(X_U);
+    REISUB_TAP_FINAL(X_B);
+    SEND_STRING(SS_UP(X_LSHIFT));
+
+    reisub_initiated = false;
+}
+
+void matrix_init_user() {
+    set_unicode_input_mode(UC_LNX);
+}
+
+void matrix_scan_user() {
+    if (reisub_arming) {
+        uint16_t arming_duration = timer_elapsed(reisub_press_timer);
+
+        if (arming_duration > REISUB_ARMING_MILLIS) {
+            reisub_initiate();
+            return;
+        }
+
+        uint16_t arming_sound_index = arming_duration / REISUB_ARMING_SOUND_PERIOD;
+
+        if (arming_sound_index > reisub_arming_sounds_played) {
+            PLAY_SONG(arming_beep);
+            reisub_arming_sounds_played = arming_sound_index;
+        }
+    }
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (reisub_initiated) {
+        return false;
+    }
+
     switch (keycode) {
         case BASE:
             if (record->event.pressed) {
@@ -349,10 +591,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
 
+        case GAME: return toggle_layer(record, _GAME);
         case NUMPAD: return toggle_layer(record, _NUMPAD);
         case GREEK: return toggle_layer(record, _GREEK);
         case LOWER: return toggle_layer(record, _LOWER);
         case RAISE: return toggle_layer(record, _RAISE);
+        case SYSTEM:
+            system_layer_change_state(record->event.pressed);
+            return false;
 
         case TR_1: return us_key(record, KC_1);
         case TR_2: return us_key(record, KC_2);
@@ -362,8 +608,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case TR_6: return us_key(record, KC_6);
         case TR_7: return us_key(record, KC_7);
         case TR_8: return us_key(record, KC_8);
-        case TR_9: return override_key(record, S(KC_9), KC_NO);
-        case TR_0: return override_key(record, S(KC_0), KC_NO);
+        case TR_9: return override_key(record, S(KC_9), S(KC_LBRC));
+        case TR_0: return override_key(record, S(KC_0), RALT(KC_BSLS));
 
         case LDR_LNG: return override_key(record, KC_EQL, S(KC_GRV));
         case LDR_ACC: return override_key(record, S(KC_EQL), KC_BSLS);
@@ -372,6 +618,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case UP_SYMB: return override_key(record, S(RALT(KC_U)), KC_NO);
         case LE_SYMB: return override_key(record, RALT(KC_Y), KC_NO);
         case DO_SYMB: return override_key(record, RALT(KC_U), KC_NO);
+
+        case KP_DIV: return override_key(record, KC_PSLS, S(RALT(KC_LBRC)));
+        case KP_MUL: return override_key(record, KC_PAST, S(RALT(KC_RBRC)));
 
         case GK_ALPHA: return greek(record, UC_GK_ALPHA);
         case GK_BETA: return greek(record, UC_GK_BETA);
@@ -399,10 +648,39 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case GK_CHI: return greek(record, UC_GK_CHI);
         case GK_PSI: return greek(record, UC_GK_PSI);
         case GK_OMEGA: return greek(record, UC_GK_OMEGA);
+
+        // Lower
+        case LKC_LRB: return no_shift(record, S(KC_RBRC));
+        case LKC_RRB: return no_shift(record, KC_RBRC);
+        case LKC_LCB: return no_shift(record, RALT(KC_9));
+        case LKC_RCB: return no_shift(record, RALT(KC_0));
+        case LKC_LSB: return no_shift(record, RALT(KC_LBRC));
+        case LKC_RSB: return no_shift(record, RALT(KC_RBRC));
+        case LKC_LAB: return no_shift(record, RALT(KC_COMM));
+        case LKC_RAB: return no_shift(record, RALT(KC_DOT));
+
+        case LKC_UND: return no_shift(record, S(KC_SLSH));
+        case LKC_BTK: return no_shift(record, RALT(KC_GRV));
+        case LKC_TLD: return no_shift(record, S(RALT(KC_GRV)));
+        case LKC_SQT: return no_shift(record, RALT(KC_QUOT));
+        case LKC_DQT: return no_shift(record, S(KC_SCLN));
+
+        case LKC_SEP: return no_shift(record, S(RALT(KC_BSLS)));
+        case LKC_SCN: return no_shift(record, KC_GRV);
+        case LKC_CLN: return no_shift(record, S(KC_DOT));
+        case LKC_FSP: return no_shift(record, KC_DOT);
+        case LKC_EXC: return no_shift(record, S(KC_QUOT));
+        case LKC_QSM: return no_shift(record, S(KC_COMM));
+
+        // Raise
+        case RKC_EUR: return no_shift(record, RALT(KC_E));
+        case RKC_RTM: return no_shift(record, S(RALT(KC_R)));
+        case RKC_TDM: return override_key(record, UC(LC_LL_TM), KC_NO);
+        case RKC_YEN: return no_shift(record, S(RALT(KC_Y)));
+        case RKC_CPR: return no_shift(record, S(RALT(KC_C)));
+
+        // System
+        case REISUB: return reisub_press(record);
     }
     return true;
 };
-
-void matrix_init_user(void) {
-    set_unicode_input_mode(UC_LNX);
-}

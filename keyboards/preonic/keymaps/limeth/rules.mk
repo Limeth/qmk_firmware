@@ -1,1 +1,2 @@
 UNICODE_ENABLE = yes
+EXTRAFLAGS += -flto
