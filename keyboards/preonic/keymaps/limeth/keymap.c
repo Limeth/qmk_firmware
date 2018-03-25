@@ -153,7 +153,6 @@ enum preonic_keycodes {
     // Lower
     LKC_CBE,
     LKC_ULC,
-    LKC_URC,
     LKC_LBU,
     LKC_LBM,
     LKC_LBL,
@@ -161,10 +160,6 @@ enum preonic_keycodes {
     LKC_RBM,
     LKC_RBL,
 
-    LKC_LRB,
-    LKC_RRB,
-    LKC_LCB,
-    LKC_RCB,
     LKC_LSB,
     LKC_RSB,
     LKC_LAB,
@@ -198,6 +193,11 @@ enum preonic_keycodes {
     RKC_DQR,
     RKC_SQL,
     RKC_SQR,
+
+    RKC_LRB,
+    RKC_RRB,
+    RKC_LCB,
+    RKC_RCB,
 
     // System
     REISUB,
@@ -333,22 +333,22 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 /* Lower
  * ,-----------------------------------------------------------------------------------.
- * |      |      | ⎪    | ⎧  ⎡ | ⎫  ⎤ | (  ⟬ | )  ⟭ | en–  | em—  |      |      |      |
+ * |      |      |      |      |      | ⎪    | ⎰  ⎱ | en–  | em—  |      |      |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      | ⎰    | ⎨  ⎢ | ⎬  ⎥ | {  ⟪ | }  ⟫ | ‗    | _  ‾ | |  ‖ | ;    |      |
+ * |      |      |      |      |      | ⎧  ⎡ | ⎫  ⎤ | ‗    | _  ‾ | |  ‖ | ;    |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      | ⎱    | ⎩  ⎣ | ⎭  ⎦ | [  ⟦ | ]  ⟧ | `    | ~  ≈ | :    | .  … |      |
+ * |      |      |      | [  ⟦ | ]  ⟧ | ⎨  ⎢ | ⎬  ⎥ | `    | ~  ≈ | :    | .  … |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      | <  ⟨ | >  ⟩ |      | '  " | !  ‼ | ?  ⁇ |      |
+ * |      |      |      | <  ⟨ | >  ⟩ | ⎩  ⎣ | ⎭  ⎦ |      | '  " | !  ‼ | ?  ⁇ |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
  * |      |      |      |      |      |             |      |      |      |      |      |
  * `-----------------------------------------------------------------------------------'
  */
 [_LOWER] = {
-  {_______, XXXXXXX, LKC_CBE, LKC_LBU, LKC_RBU, LKC_LRB, LKC_RRB, LKC_END, LKC_EMD, XXXXXXX, XXXXXXX, _______},
-  {_______, XXXXXXX, LKC_ULC, LKC_LBM, LKC_RBM, LKC_LCB, LKC_RCB, LKC_DUN, LKC_UND, LKC_SEP, LKC_SCN, _______},
-  {_______, XXXXXXX, LKC_URC, LKC_LBL, LKC_RBL, LKC_LSB, LKC_RSB, LKC_BTK, LKC_TLD, LKC_CLN, LKC_FSP, _______},
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, LKC_LAB, LKC_RAB, XXXXXXX, LKC_QOT, LKC_EXC, LKC_QSM, _______},
+  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, LKC_CBE, LKC_ULC, LKC_END, LKC_EMD, XXXXXXX, XXXXXXX, _______},
+  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, LKC_LBU, LKC_RBU, LKC_DUN, LKC_UND, LKC_SEP, LKC_SCN, _______},
+  {_______, XXXXXXX, XXXXXXX, LKC_LSB, LKC_RSB, LKC_LBM, LKC_RBM, LKC_BTK, LKC_TLD, LKC_CLN, LKC_FSP, _______},
+  {_______, XXXXXXX, XXXXXXX, LKC_LAB, LKC_RAB, LKC_LBL, LKC_RBL, XXXXXXX, LKC_QOT, LKC_EXC, LKC_QSM, _______},
   {_______, _______, _______, _______, _______, _______, _______, _______, _______, XXXXXXX, XXXXXXX, XXXXXXX}
 },
 
@@ -358,9 +358,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |------+------+------+------+------+------+------+------+------+------+------+------|
  * |      |      |      | €    | ®    | ™    | ¥    |      |      |      |      |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      | „  ” | “    |      |      | £    |      |      |
+ * |      |      |      |      |      | „  ” | “    | (  ⟬ | )  ⟭ | £    |      |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      | ©  ¢ |      | ‚  ’ | ‘    |      |      | Prev | Next | Play |
+ * |      |      |      | ©  ¢ |      | ‚  ’ | ‘    | {  ⟪ | }  ⟫ | Prev | Next | Play |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
  * |      |      |      |      |      |             |      |      | Vol- | Vol+ | Mute |
  * `-----------------------------------------------------------------------------------'
@@ -368,8 +368,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 [_RAISE] = {
   {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, RKC_FQL, RKC_FQR, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
   {_______, XXXXXXX, XXXXXXX, RKC_EUR, RKC_RTM, RKC_TDM, RKC_YEN, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, RKC_DQL, RKC_DQR, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
-  {_______, XXXXXXX, XXXXXXX, RKC_CPR, XXXXXXX, RKC_SQL, RKC_SQR, XXXXXXX, XXXXXXX, KC_MPRV, KC_MNXT, KC_MPLY},
+  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, RKC_DQL, RKC_DQR, RKC_LRB, RKC_RRB, XXXXXXX, XXXXXXX, _______},
+  {_______, XXXXXXX, XXXXXXX, RKC_CPR, XXXXXXX, RKC_SQL, RKC_SQR, RKC_LCB, RKC_RCB, KC_MPRV, KC_MNXT, KC_MPLY},
   {_______, _______, _______, _______, _______, _______, _______, _______, _______, KC_VOLD, KC_VOLU, KC_MUTE}
 },
 
@@ -796,8 +796,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         // Lower
         case LKC_CBE: return no_shift(record, UC(0x23AA));
-        case LKC_ULC: return no_shift(record, UC(0x23B0));
-        case LKC_URC: return no_shift(record, UC(0x23B1));
+        case LKC_ULC: return override_key(record, UC(0x23B0), UC(0x23B1));
         case LKC_LBU: return override_key(record, UC(0x23A7), UC(0x23A1));
         case LKC_LBM: return override_key(record, UC(0x23A8), UC(0x23A2));
         case LKC_LBL: return override_key(record, UC(0x23A9), UC(0x23A3));
@@ -805,10 +804,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case LKC_RBM: return override_key(record, UC(0x23AC), UC(0x23A5));
         case LKC_RBL: return override_key(record, UC(0x23AD), UC(0x23A6));
 
-        case LKC_LRB: return override_key(record, S(KC_RBRC), UC(0x27EC));
-        case LKC_RRB: return override_key(record, KC_RBRC, UC(0x27ED));
-        case LKC_LCB: return override_key(record, RALT(KC_9), UC(0x27EA));
-        case LKC_RCB: return override_key(record, RALT(KC_0), UC(0x27EB));
         case LKC_LSB: return override_key(record, RALT(KC_LBRC), UC(0x27E6));
         case LKC_RSB: return override_key(record, RALT(KC_RBRC), UC(0x27E7));
         case LKC_LAB: return override_key(record, RALT(KC_COMM), UC(0x27E8));
@@ -842,6 +837,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case RKC_DQR: return no_shift(record, UC(0x201C));
         case RKC_SQL: return override_key(record, UC(0x201A), UC(0x2019));
         case RKC_SQR: return no_shift(record, UC(0x2018));
+
+        case RKC_LRB: return override_key(record, S(KC_RBRC), UC(0x27EC));
+        case RKC_RRB: return override_key(record, KC_RBRC, UC(0x27ED));
+        case RKC_LCB: return override_key(record, RALT(KC_9), UC(0x27EA));
+        case RKC_RCB: return override_key(record, RALT(KC_0), UC(0x27EB));
 
         // System
         case REISUB: return reisub_press(record);
