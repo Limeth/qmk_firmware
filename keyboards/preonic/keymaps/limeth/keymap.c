@@ -221,7 +221,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 [_BASE] = {
   {KC_ESC,  TR_1,  TR_2,    TR_3,    TR_4,    TR_5,    TR_6,    TR_7,    TR_8,    TR_9,    TR_0,    KC_BSPC},
   {KC_TAB,  KC_Q,  KC_W,    KC_E,    KC_R,    KC_T,    KC_Z,    KC_U,    KC_I,    KC_O,    KC_P,    KC_DEL},
-  {KC_LCTL, KC_A,  KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    COMMA,   KC_ENT},
+  {KC_LCTL, KC_A,  KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    /*COMMA*/KC_COMM,   KC_ENT},
   {KC_LSFT, KC_Y,  KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    LDR_LNG, LDR_ACC, KC_UP,   KC_RSFT},
   {NUMPAD,  GREEK, KC_LGUI, KC_LALT, LOWER,   KC_SPC,  KC_SPC,  RAISE,   KC_RALT, KC_LEFT, KC_DOWN, KC_RGHT}
 },
@@ -422,6 +422,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * Thanks to fredizzimo for sharing:
  * https://github.com/fredizzimo/qmk_firmware/blob/18d83e5c98dd3a9dbf5a5e0f1579e86bee2d924f/layouts/community/ergodox/fredizzimo/keymap.c#L171-L198
  */
+// TODO: Doesn't repeat held keys
 void press_key_with_level_mods(uint16_t key) {
     const uint8_t interesting_mods = MOD_BIT(KC_LSHIFT) | MOD_BIT(KC_RSHIFT) | MOD_BIT(KC_RALT);
 
