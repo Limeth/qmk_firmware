@@ -183,6 +183,7 @@ enum preonic_keycodes {
     // Raise
     RKC_EUR,
     RKC_RTM,
+    RKC_SHS,
     RKC_TDM,
     RKC_YEN,
     RKC_CPR,
@@ -358,7 +359,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |------+------+------+------+------+------+------+------+------+------+------+------|
  * |      |      |      | €    | ®    | ™    | ¥    |      |      |      |      |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      | „  ” | “    | (  ⟬ | )  ⟭ | £    |      |      |
+ * |      |      | ß    |      |      | „  ” | “    | (  ⟬ | )  ⟭ | £    |      |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
  * |      |      |      | ©  ¢ |      | ‚  ’ | ‘    | {  ⟪ | }  ⟫ | Prev | Next | Play |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
@@ -368,7 +369,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 [_RAISE] = {
   {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, RKC_FQL, RKC_FQR, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
   {_______, XXXXXXX, XXXXXXX, RKC_EUR, RKC_RTM, RKC_TDM, RKC_YEN, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______},
-  {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, RKC_DQL, RKC_DQR, RKC_LRB, RKC_RRB, XXXXXXX, XXXXXXX, _______},
+  {_______, XXXXXXX, RKC_SHS, XXXXXXX, XXXXXXX, RKC_DQL, RKC_DQR, RKC_LRB, RKC_RRB, XXXXXXX, XXXXXXX, _______},
   {_______, XXXXXXX, XXXXXXX, RKC_CPR, XXXXXXX, RKC_SQL, RKC_SQR, RKC_LCB, RKC_RCB, KC_MPRV, KC_MNXT, KC_MPLY},
   {_______, _______, _______, _______, _______, _______, _______, _______, _______, KC_VOLD, KC_VOLU, KC_MUTE}
 },
@@ -630,8 +631,32 @@ void reisub_initiate(void) {
     reisub_initiated = false;
 }
 
+static bool scan_keycode(uint8_t keycode) {
+    for (uint8_t r = 0; r < MATRIX_ROWS; r++) {
+        matrix_row_t matrix_row = matrix_get_row(r);
+        for (uint8_t c = 0; c < MATRIX_COLS; c++) {
+            if (matrix_row & ((matrix_row_t)1<<c)) {
+                if (keycode == keymap_key_to_keycode(0, (keypos_t){ .row = r, .col = c })) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 void matrix_init_user() {
-    set_unicode_input_mode(UC_LNX);
+    matrix_scan();
+    wait_ms(DEBOUNCING_DELAY);
+    matrix_scan();
+
+    if (scan_keycode(KC_W)) {
+        set_unicode_input_mode(UC_WIN);
+    } else if (scan_keycode(KC_O)) {
+        set_unicode_input_mode(UC_OSX);
+    } else {
+        set_unicode_input_mode(UC_LNX);
+    }
 }
 
 void matrix_scan_user() {
@@ -828,6 +853,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         // Raise
         case RKC_EUR: return no_shift(record, RALT(KC_E));
         case RKC_RTM: return no_shift(record, S(RALT(KC_R)));
+        case RKC_SHS: return override_key(record, S(RALT(KC_QUOT)), UC(0x1E9E));
         case RKC_TDM: return no_shift(record, UC(0x2122));
         case RKC_YEN: return no_shift(record, S(RALT(KC_Y)));
         case RKC_CPR: return no_shift(record, S(RALT(KC_C)));
