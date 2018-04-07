@@ -63,6 +63,7 @@ enum preonic_keycodes {
     KP_CONJ,
     KP_DISJ,
     KP_NEGA,
+    KP_ASTR,
     KP_SISC,
     KP_SUNI,
     KP_ELL1,
@@ -83,6 +84,8 @@ enum preonic_keycodes {
     KP_SREA,
     KP_SCLX,
     KP_SQTN,
+    KP_LFLR,
+    KP_RFLR,
 
     // Numpad Lower
     KPL_0,
@@ -254,9 +257,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |------+------+------+------+------+------+------+------+------+------+------+------|
  * |      | ∑  ⎳ | ∏  ∐ | ∖    | ⊆  ⊈ | 7    | 8    | 9    | +  ± | ℚ    | ℝ    |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      | ∧    | ∨    | ¬    |      | 4    | 5    | 6    | =  ≠ | ℂ    | ℍ    |      |
+ * |      | ∧ ^∧ | ∨ ^~ | ¬    |∨* ^* | 4    | 5    | 6    | =  ≠ | ℂ    | ℍ    |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      | ∩    | ∪    | ⋯  ⋮ | ⋱  ⋰ | 1  ∞ | 2    | 3    | .  , |      |      |      |
+ * |      | ∩    | ∪    | ⋯  ⋮ | ⋱  ⋰ | 1  ∞ | 2    | 3    | .  , | ⌊    | ⌋    |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
  * |      |      |      |      |NPLowr| 0      ∅    |NPRais|Enter |      |      |      |
  * `-----------------------------------------------------------------------------------'
@@ -264,8 +267,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 [_NUMPAD] = {
   {_______, KP_FORA, KP_EXST, KP_ELEM, KP_SUBS, KC_NLCK, KP_DIV,  KP_MUL,  KP_MINS, KP_SNAT, KP_SINT, _______},
   {_______, KP_SUMM, KP_PROD, KP_SSUB, KP_ESBS, KC_KP_7, KC_KP_8, KC_KP_9, KP_PLUS, KP_SRAT, KP_SREA, _______},
-  {_______, KP_CONJ, KP_DISJ, KP_NEGA, XXXXXXX, KC_KP_4, KC_KP_5, KC_KP_6, KP_EQLS, KP_SCLX, KP_SQTN, _______},
-  {_______, KP_SISC, KP_SUNI, KP_ELL1, KP_ELL2, KP_1,    KC_KP_2, KC_KP_3, KP_DOT,  XXXXXXX, XXXXXXX, _______},
+  {_______, KP_CONJ, KP_DISJ, KP_NEGA, KP_ASTR, KC_KP_4, KC_KP_5, KC_KP_6, KP_EQLS, KP_SCLX, KP_SQTN, _______},
+  {_______, KP_SISC, KP_SUNI, KP_ELL1, KP_ELL2, KP_1,    KC_KP_2, KC_KP_3, KP_DOT,  KP_LFLR, KP_RFLR, _______},
   {_______, _______, _______, _______, KP_LOWR, KP_0,    KP_0,    KP_RAIS, KC_PENT, XXXXXXX, XXXXXXX, XXXXXXX}
 },
 
@@ -731,9 +734,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case KP_PROD: return override_key(record, UC(0x220F), UC(0x2210));
         case KP_SSUB: return no_shift(record, UC(0x2216));
         case KP_ESBS: return override_key(record, UC(0x2286), UC(0x2288));
-        case KP_CONJ: return no_shift(record, UC(0x2227));
-        case KP_DISJ: return no_shift(record, UC(0x2228));
+        case KP_CONJ: return override_key(record, UC(0x2227), UC(0x0302));
+        case KP_DISJ: return override_key(record, UC(0x2228), UC(0x0303));
         case KP_NEGA: return no_shift(record, UC(0x00AC));
+        case KP_ASTR: return override_key(record, UC(0x2217), UC(0x20F0));
         case KP_SISC: return no_shift(record, UC(0x2229));
         case KP_SUNI: return no_shift(record, UC(0x222A));
         case KP_ELL1: return override_key(record, UC(0x22EF), UC(0x22EE));
@@ -754,6 +758,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case KP_SREA: return no_shift(record, UC(0x211D));
         case KP_SCLX: return no_shift(record, UC(0x2102));
         case KP_SQTN: return no_shift(record, UC(0x210D));
+        case KP_LFLR: return no_shift(record, UC(0x230A));
+        case KP_RFLR: return no_shift(record, UC(0x230B));
 
         case GK_ALPHA: return greek(record, 0x0391);
         case GK_BETA: return greek(record, 0x0392);
