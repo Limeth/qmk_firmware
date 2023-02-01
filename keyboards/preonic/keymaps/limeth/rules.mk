@@ -1,3 +1,3 @@
 UNICODE_ENABLE = yes
 EXTRAFLAGS += -flto
-AUDIO_ENABLE = yes
+DEBOUNCE_TYPE = sym_eager_pk

@@ -265,11 +265,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * `-----------------------------------------------------------------------------------'
  */
 [_NUMPAD] = {
-  {_______, KP_FORA, KP_EXST, KP_ELEM, KP_SUBS, KC_NLCK, KP_DIV,  KP_MUL,  KP_MINS, KP_SNAT, KP_SINT, _______},
-  {_______, KP_SUMM, KP_PROD, KP_SSUB, KP_ESBS, KC_KP_7, KC_KP_8, KC_KP_9, KP_PLUS, KP_SRAT, KP_SREA, _______},
-  {_______, KP_CONJ, KP_DISJ, KP_NEGA, KP_ASTR, KC_KP_4, KC_KP_5, KC_KP_6, KP_EQLS, KP_SCLX, KP_SQTN, _______},
-  {_______, KP_SISC, KP_SUNI, KP_ELL1, KP_ELL2, KP_1,    KC_KP_2, KC_KP_3, KP_DOT,  KP_LFLR, KP_RFLR, _______},
-  {_______, _______, _______, _______, KP_LOWR, KP_0,    KP_0,    KP_RAIS, KC_PENT, XXXXXXX, XXXXXXX, XXXXXXX}
+  {_______, KP_FORA, KP_EXST, KP_ELEM, KP_SUBS, KC_NUM_LOCK, KP_DIV,  KP_MUL,  KP_MINS, KP_SNAT, KP_SINT, _______},
+  {_______, KP_SUMM, KP_PROD, KP_SSUB, KP_ESBS, KC_KP_7,     KC_KP_8, KC_KP_9, KP_PLUS, KP_SRAT, KP_SREA, _______},
+  {_______, KP_CONJ, KP_DISJ, KP_NEGA, KP_ASTR, KC_KP_4,     KC_KP_5, KC_KP_6, KP_EQLS, KP_SCLX, KP_SQTN, _______},
+  {_______, KP_SISC, KP_SUNI, KP_ELL1, KP_ELL2, KP_1,        KC_KP_2, KC_KP_3, KP_DOT,  KP_LFLR, KP_RFLR, _______},
+  {_______, _______, _______, _______, KP_LOWR, KP_0,        KP_0,    KP_RAIS, KC_PENT, XXXXXXX, XXXXXXX, XXXXXXX}
 },
 
 /* NumPad Lower
@@ -392,7 +392,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  */
 [_ADJUST] = {
   {KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12},
-  {XXXXXXX, RESET,   DEBUG,   XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, TERM_ON, TERM_OFF,XXXXXXX, XXXXXXX, BASE},
+  {XXXXXXX, QK_BOOT, DB_TOGG, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, BASE},
   {XXXXXXX, XXXXXXX, MU_MOD,  AU_ON,   AU_OFF,  AG_NORM, AG_SWAP, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, GAME},
   {XXXXXXX, MUV_DE,  MUV_IN,  MU_ON,   MU_OFF,  MI_ON,   MI_OFF,  XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX},
   {XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______, SYSTEM,  SYSTEM,  _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX}
@@ -412,7 +412,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * `-----------------------------------------------------------------------------------'
  */
 [_SYSTEM] = {
-  {RESET,   XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,  REISUB},
+  {QK_BOOT, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,  REISUB},
   {XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX},
   {XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX},
   {XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX},
@@ -424,16 +424,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 /*
  * Thanks to fredizzimo for sharing:
- * https://github.com/fredizzimo/qmk_firmware/blob/18d83e5c98dd3a9dbf5a5e0f1579e86bee2d924f/layouts/community/ergodox/fredizzimo/keymap.c#L171-L198
+ * https://github.com/fredizzimo/qmk_firmware/blob/fredizzimo_keymap/layouts/community/ergodox/fredizzimo/keymap.c#L177-L207
  */
 // TODO: Doesn't repeat held keys
 void press_key_with_level_mods(uint16_t key) {
-    const uint8_t interesting_mods = MOD_BIT(KC_LSHIFT) | MOD_BIT(KC_RSHIFT) | MOD_BIT(KC_RALT);
+    const uint8_t interesting_mods = MOD_BIT(KC_LSFT) | MOD_BIT(KC_RSFT) | MOD_BIT(KC_RALT);
 
     // Save the state
     const uint8_t real_mods = get_mods();
     const uint8_t weak_mods = get_weak_mods();
-    const uint8_t macro_mods = get_macro_mods();
 
     uint8_t target_mods = (key >> 8) & (QK_MODS_MAX >> 8);
     // The 5th bit indicates that it's a right hand mod,
@@ -446,7 +445,6 @@ void press_key_with_level_mods(uint16_t key) {
     // Clear the mods that we are potentially going to modify,
     del_mods(interesting_mods);
     del_weak_mods(interesting_mods);
-    del_macro_mods(interesting_mods);
 
     // Enable the mods that we need
     add_mods(target_mods & interesting_mods);
@@ -458,7 +456,6 @@ void press_key_with_level_mods(uint16_t key) {
     // Restore the previous state
     set_mods(real_mods);
     set_weak_mods(weak_mods);
-    set_macro_mods(macro_mods);
     send_keyboard_report();
 }
 
@@ -569,16 +566,15 @@ bool set_default_layer_sound(keyrecord_t *record, uint8_t default_layer) {
 #define REISUB_TAP(k) \
     SEND_STRING(SS_TAP(k)); \
     PLAY_SONG(initiation_beep); \
-    wait_ms(REISUB_INITIATION_COMMAND_PERIOD);
+    wait_ms(REISUB_INITIATION_COMMAND_PERIOD)
 #define REISUB_TAP_FINAL(k) \
     SEND_STRING(SS_TAP(k)); \
-    PLAY_SONG(initiation_beep_final);
+    PLAY_SONG(initiation_beep_final)
 #else
 #define REISUB_TAP(k) \
-    SEND_STRING(SS_TAP(k)); \
-    wait_ms(REISUB_INITIATION_COMMAND_PERIOD);
+    SEND_STRING(SS_TAP(k) SS_DELAY(REISUB_INITIATION_COMMAND_PERIOD))
 #define REISUB_TAP_FINAL(k) \
-    SEND_STRING(SS_TAP(k));
+    SEND_STRING(SS_TAP(k))
 #endif
 
 #ifdef AUDIO_ENABLE
@@ -620,16 +616,14 @@ void reisub_initiate(void) {
     reisub_initiated = true;
     reisub_arming = false;
 
-    SEND_STRING(SS_DOWN(X_LALT));
-    SEND_STRING(SS_DOWN(X_PSCREEN));
+    SEND_STRING(SS_DOWN(X_LALT) SS_DOWN(X_PSCR));
     REISUB_TAP(X_R);
     REISUB_TAP(X_E);
     REISUB_TAP(X_I);
     REISUB_TAP(X_S);
     REISUB_TAP(X_U);
     REISUB_TAP_FINAL(X_B);
-    SEND_STRING(SS_UP(X_PSCREEN));
-    SEND_STRING(SS_UP(X_LALT));
+    SEND_STRING(SS_UP(X_PSCR) SS_UP(X_LALT));
 
     reisub_initiated = false;
 }
@@ -639,7 +633,7 @@ static bool scan_keycode(uint8_t keycode) {
         matrix_row_t matrix_row = matrix_get_row(r);
         for (uint8_t c = 0; c < MATRIX_COLS; c++) {
             if (matrix_row & ((matrix_row_t)1<<c)) {
-                if (keycode == keymap_key_to_keycode(0, (keypos_t){ .row = r, .col = c })) {
+                if (keycode == keymap_key_to_keycode(_BASE, (keypos_t){ .row = r, .col = c })) {
                     return true;
                 }
             }
@@ -650,15 +644,15 @@ static bool scan_keycode(uint8_t keycode) {
 
 void matrix_init_user() {
     matrix_scan();
-    wait_ms(DEBOUNCING_DELAY);
+    wait_ms(DEBOUNCE);
     matrix_scan();
 
     if (scan_keycode(KC_W)) {
-        set_unicode_input_mode(UC_WIN);
-    } else if (scan_keycode(KC_O)) {
-        set_unicode_input_mode(UC_OSX);
-    } else {
-        set_unicode_input_mode(UC_LNX);
+        set_unicode_input_mode(UNICODE_MODE_WINCOMPOSE);
+    } else if (scan_keycode(KC_O) || scan_keycode(KC_M)) {
+        set_unicode_input_mode(UNICODE_MODE_MACOS);
+    } else if (scan_keycode(KC_L)) {
+        set_unicode_input_mode(UNICODE_MODE_LINUX);
     }
 }
 
