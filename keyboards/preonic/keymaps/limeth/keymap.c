@@ -1,6 +1,9 @@
 #include "preonic.h"
 #include "action_layer.h"
 #include "wait.h"
+#include "keymap_czech.h"
+#include "sendstring_czech.h"
+#include "print.h"
 
 #define XXXXXXX KC_NO
 
@@ -351,7 +354,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 [_LOWER] = {
   {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, LKC_CBE, LKC_ULC, LKC_END, LKC_EMD, XXXXXXX, XXXXXXX, _______},
   {_______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, LKC_LBU, LKC_RBU, LKC_DUN, LKC_UND, LKC_SEP, LKC_SCN, _______},
-  {_______, XXXXXXX, XXXXXXX, LKC_LSB, LKC_RSB, LKC_LBM, LKC_RBM, LKC_BTK, LKC_TLD, LKC_CLN, LKC_FSP, _______},
+  {_______, XXXXXXX, XXXXXXX, LKC_LSB, LKC_RSB, LKC_LBM, LKC_RBM,  CZ_GRV, LKC_TLD, LKC_CLN, LKC_FSP, _______},
   {_______, XXXXXXX, XXXXXXX, LKC_LAB, LKC_RAB, LKC_LBL, LKC_RBL, XXXXXXX, LKC_QOT, LKC_EXC, LKC_QSM, _______},
   {_______, _______, _______, _______, _______, _______, _______, _______, _______, XXXXXXX, XXXXXXX, XXXXXXX}
 },
@@ -428,19 +431,26 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  */
 // TODO: Doesn't repeat held keys
 void press_key_with_level_mods(uint16_t key) {
-    const uint8_t interesting_mods = MOD_BIT(KC_LSFT) | MOD_BIT(KC_RSFT) | MOD_BIT(KC_RALT);
+    const uint8_t interesting_mods = MOD_MASK_CSAG;
 
     // Save the state
     const uint8_t real_mods = get_mods();
     const uint8_t weak_mods = get_weak_mods();
 
-    uint8_t target_mods = (key >> 8) & (QK_MODS_MAX >> 8);
+    uint8_t target_mods = (key / QK_MODS) & (QK_MODS_MAX / QK_MODS);
+
+    /*
     // The 5th bit indicates that it's a right hand mod,
     // which needs some fixup
     if (target_mods & 0x10) {
         target_mods &= 0xF;
         target_mods <<= 4;
     }
+    */
+
+    dprintf("press_key_with_level_mods::key %04X\n", key);
+    dprintf("press_key_with_level_mods::target_mods %02X\n", target_mods);
+    dprintf("press_key_with_level_mods::interesting_mods %02X\n", interesting_mods);
 
     // Clear the mods that we are potentially going to modify,
     del_mods(interesting_mods);
@@ -450,8 +460,8 @@ void press_key_with_level_mods(uint16_t key) {
     add_mods(target_mods & interesting_mods);
 
     // Press and release the key
-    register_code(key & 0xFF);
-    unregister_code(key & 0xFF);
+    register_code(key & QK_BASIC_MAX);
+    unregister_code(key & QK_BASIC_MAX);
 
     // Restore the previous state
     set_mods(real_mods);
@@ -642,16 +652,30 @@ static bool scan_keycode(uint8_t keycode) {
     return false;
 }
 
+void keyboard_post_init_user() {
+#ifdef CONSOLE_ENABLE
+    debug_enable=true;
+    debug_matrix=true;
+    debug_keyboard=true;
+    debug_mouse=true;
+#endif
+}
+
 void matrix_init_user() {
     matrix_scan();
     wait_ms(DEBOUNCE);
     matrix_scan();
 
+    dprintf("Scanning for unicode mode keys...\n");
+
     if (scan_keycode(KC_W)) {
+        dprintf("Unicode mode: WinCompose\n");
         set_unicode_input_mode(UNICODE_MODE_WINCOMPOSE);
     } else if (scan_keycode(KC_O) || scan_keycode(KC_M)) {
+        dprintf("Unicode mode: MacOS\n");
         set_unicode_input_mode(UNICODE_MODE_MACOS);
     } else if (scan_keycode(KC_L)) {
+        dprintf("Unicode mode: Linux\n");
         set_unicode_input_mode(UNICODE_MODE_LINUX);
     }
 }
@@ -700,16 +724,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             system_layer_change_state(record->event.pressed);
             return false;
 
-        case TR_1: return us_key(record, KC_1);
-        case TR_2: return us_key(record, KC_2);
-        case TR_3: return us_key(record, KC_3);
-        case TR_4: return us_key(record, KC_4);
-        case TR_5: return us_key(record, KC_5);
-        case TR_6: return us_key(record, KC_6);
-        case TR_7: return us_key(record, KC_7);
-        case TR_8: return us_key(record, KC_8);
-        case TR_9: return override_key(record, S(KC_9), S(KC_LBRC));
-        case TR_0: return override_key(record, S(KC_0), RALT(KC_BSLS));
+        case TR_1: return override_key(record, CZ_1, CZ_EXLM);
+        case TR_2: return override_key(record, CZ_2, CZ_AT);
+        case TR_3: return override_key(record, CZ_3, CZ_HASH);
+        case TR_4: return override_key(record, CZ_4, CZ_DLR);
+        case TR_5: return override_key(record, CZ_5, CZ_PERC);
+        case TR_6: return override_key(record, CZ_6, UC(0x005E) /* the regular CIRCumflex is a combinator */);
+        case TR_7: return override_key(record, CZ_7, CZ_AMPR);
+        case TR_8: return override_key(record, CZ_8, CZ_ASTR);
+        case TR_9: return override_key(record, CZ_9, CZ_SLSH);
+        case TR_0: return override_key(record, CZ_0, CZ_BSLS);
 
         case LDR_LNG: return override_key(record, KC_EQL, S(KC_GRV));
         case LDR_ACC: return override_key(record, S(KC_EQL), KC_BSLS);
@@ -743,7 +767,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case KP_MUL: return override_key(record, KC_PAST, S(RALT(KC_RBRC)));
         case KP_MINS: return override_key(record, KC_PMNS, UC(0x2213));
         case KP_PLUS: return override_key(record, KC_PPLS, UC(0x00B1));
-        case KP_EQLS: return override_key(record, KC_PEQL, UC(0x2260));
+        case KP_EQLS: return override_key(record, CZ_EQL, UC(0x2260));
         case KP_DOT: return override_key(record, KC_PDOT, KC_COMM);
 
         case KP_SNAT: return no_shift(record, UC(0x2115));
@@ -783,7 +807,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case GK_OMEGA: return greek(record, 0x03A9);
 
         // Numpad Lower
-        case KPL_0: 
+        case KPL_0:
         case KPL_1:
         case KPL_2:
         case KPL_3:
@@ -830,8 +854,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case LKC_RBM: return override_key(record, UC(0x23AC), UC(0x23A5));
         case LKC_RBL: return override_key(record, UC(0x23AD), UC(0x23A6));
 
-        case LKC_LSB: return override_key(record, RALT(KC_LBRC), UC(0x27E6));
-        case LKC_RSB: return override_key(record, RALT(KC_RBRC), UC(0x27E7));
+        case LKC_LSB: return override_key(record, RALT(KC_F), UC(0x27E6));
+        case LKC_RSB: return override_key(record, RALT(KC_G), UC(0x27E7));
         case LKC_LAB: return override_key(record, RALT(KC_COMM), UC(0x27E8));
         case LKC_RAB: return override_key(record, RALT(KC_DOT), UC(0x27E9));
 
@@ -839,11 +863,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case LKC_EMD: return no_shift(record, UC(0x2014));
         case LKC_DUN: return no_shift(record, UC(0x2017));
         case LKC_UND: return override_key(record, S(KC_SLSH), UC(0x203E));
-        case LKC_BTK: return no_shift(record, RALT(KC_GRV));
-        case LKC_TLD: return override_key(record, S(RALT(KC_GRV)), UC(0x2248));
-        case LKC_QOT: return override_key(record, RALT(KC_QUOT), S(KC_SCLN));
+        case LKC_BTK: return no_shift(record, CZ_GRV);
+        case LKC_TLD: return override_key(record, CZ_TILD, UC(0x2248));
+        case LKC_QOT: return override_key(record, CZ_QUOT, S(KC_SCLN));
 
-        case LKC_SEP: return override_key(record, S(RALT(KC_BSLS)), UC(0x2016));
+        case LKC_SEP: return override_key(record, CZ_PIPE, UC(0x2016));
         case LKC_SCN: return no_shift(record, KC_GRV);
         case LKC_CLN: return no_shift(record, S(KC_DOT));
         case LKC_FSP: return override_key(record, KC_DOT, UC(0x2026));
@@ -867,8 +891,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case RKC_LRB: return override_key(record, S(KC_RBRC), UC(0x27EC));
         case RKC_RRB: return override_key(record, KC_RBRC, UC(0x27ED));
-        case RKC_LCB: return override_key(record, RALT(KC_9), UC(0x27EA));
-        case RKC_RCB: return override_key(record, RALT(KC_0), UC(0x27EB));
+        case RKC_LCB: return override_key(record, RALT(KC_B), UC(0x27EA));
+        case RKC_RCB: return override_key(record, RALT(KC_N), UC(0x27EB));
 
         // System
         case REISUB: return reisub_press(record);

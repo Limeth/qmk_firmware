@@ -3,9 +3,6 @@
 
 #include "config_common.h"
 
-#define NO_DEBUG
-#define NO_PRINT
-
 #define UNICODE_SELECTED_MODES UNICODE_MODE_LINUX, UNICODE_MODE_WINCOMPOSE, UNICODE_MODE_MACOS
 
 #ifdef AUDIO_ENABLE
